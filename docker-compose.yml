@@ -1,0 +1,29 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fp_api
+    restart: unless-stopped
+    environment:
+      SERVER_PORT: 5000
+      # Usamos jdbc:mysql porque el servidor de Aiven es MySQL
+      # He añadido verifyServerCertificate=false por si el contenedor no tiene los certificados de Aiven instalados
+      SPRING_DATASOURCE_URL: ${DB_URL}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      
+      SPRING_JPA_SHOW_SQL: "true"
+      # Importante: para que Hibernate no intente usar cosas específicas de MariaDB
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQL8Dialect
+      # Esto hará que Spring cree las tablas automáticamente en la nube
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+
+    ports:
+      - "5000:5000"
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    external: true
