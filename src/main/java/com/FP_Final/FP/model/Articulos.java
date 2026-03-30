@@ -37,6 +37,12 @@ public class Articulos {
     @Column(nullable = false, length = 13, unique = true)
     private String codigo;
 
+    @Column(name = "aemps_code", length = 10)
+    private String aempsCode;
+
+    @Column(length = 100)
+    private String laboratorio;
+
 	public String getCodigo() {
 		return codigo;
 	}
@@ -84,6 +90,22 @@ public class Articulos {
 	public void setCantidad(int cantidad) {
 		this.cantidad = cantidad;
 	}
-    
-    
+
+	public String getAempsCode() {
+		return aempsCode;
+	}
+
+	public void setAempsCode(String aempsCode) {
+		this.aempsCode = aempsCode;
+	}
+
+	public String getLaboratorio() {
+		return laboratorio;
+	}
+
+	public void setLaboratorio(String laboratorio) {
+		this.laboratorio = laboratorio;
+	}
+
+
 }

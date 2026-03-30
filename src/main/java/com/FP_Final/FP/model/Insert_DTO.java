@@ -5,6 +5,8 @@ public class Insert_DTO {
 	private double precio;
 	private String nombre;
 	private String categoria;
+	private String aempsCode;
+	private String laboratorio;
 	public int getCantidad() {
 		return cantidad;
 	}
@@ -29,7 +31,17 @@ public class Insert_DTO {
 	public void setCategoria(String categoria) {
 		this.categoria = categoria;
 	}
-	
-	
+	public String getAempsCode() {
+		return aempsCode;
+	}
+	public void setAempsCode(String aempsCode) {
+		this.aempsCode = aempsCode;
+	}
+	public String getLaboratorio() {
+		return laboratorio;
+	}
+	public void setLaboratorio(String laboratorio) {
+		this.laboratorio = laboratorio;
+	}
 
 }

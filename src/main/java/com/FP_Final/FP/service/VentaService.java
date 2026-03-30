@@ -1,17 +1,18 @@
 package com.FP_Final.FP.service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.FP_Final.FP.model.*;
+import com.FP_Final.FP.repository.VentaCanceladaRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import com.FP_Final.FP.model.Articulos;
-import com.FP_Final.FP.model.VentaDTO;
-import com.FP_Final.FP.model.Ventas;
 import com.FP_Final.FP.repository.ArticulosRepository;
 import com.FP_Final.FP.repository.VentasRepository;
 //import org.springframework.security.oauth2.jwt.Jwt;
@@ -23,7 +24,9 @@ public class VentaService {
     private VentasRepository ventas_repository;
 	@Autowired
     private ArticulosRepository articulosRepository;
-	
+
+	@Autowired
+	private VentaCanceladaRepository canceladaRepository; // El nuevo repo
 	
 	public String obtenerUsuarioAutenticado() {
 	    Object principal = SecurityContextHolder
@@ -89,6 +92,28 @@ public class VentaService {
 
         return nuevasVentas;
     }
+
+	@Transactional
+	public void cancelarVenta(Integer idVenta, String usernameResponsable) {
+		// 1. Buscamos la venta original
+		Ventas ventaOriginal = ventas_repository.findById(idVenta)
+				.orElseThrow(() -> new RuntimeException("Venta no encontrada"));
+
+		// 2. Creamos el objeto de VentaCancelada copiando los datos
+		VentaCancelada cancelacion = new VentaCancelada();
+		cancelacion.setNombreProducto(ventaOriginal.getNameproducto()); // Ajusta los getters según tu entidad Venta
+		cancelacion.setCantidad(ventaOriginal.getCantidad());
+		cancelacion.setImporte(ventaOriginal.getImporte());
+		cancelacion.setResponsable(usernameResponsable); // El usuario que ha dado al botón
+		cancelacion.setFecha(LocalDateTime.now());
+
+		// 3. Guardamos en el historial de cancelaciones
+		cancelacion.setStatus(CancellationStatus.CANCELLED);
+		canceladaRepository.save(cancelacion);
+
+		// 4. Borramos de la tabla de ventas original
+		ventas_repository.delete(ventaOriginal);
+	}
 
 
 }

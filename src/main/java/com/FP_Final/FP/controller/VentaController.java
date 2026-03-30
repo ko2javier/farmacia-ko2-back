@@ -48,4 +48,14 @@ public class VentaController {
         List<Ventas> nuevasVentas = ventaService.registrarVentas(ventasDTO);
         return ResponseEntity.ok(nuevasVentas);
     }
+
+    @DeleteMapping("/cancelar/{id}")
+    public ResponseEntity<?> cancelarVenta(@PathVariable Integer id, @RequestParam String responsable) {
+        try {
+            ventaService.cancelarVenta(id, responsable);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error al cancelar: " + e.getMessage());
+        }
+    }
 }
