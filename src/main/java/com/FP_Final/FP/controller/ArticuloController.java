@@ -11,6 +11,7 @@ import com.FP_Final.FP.model.VentaDTO;
 import com.FP_Final.FP.service.ArticuloService;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/articulos")
@@ -32,7 +33,7 @@ public class ArticuloController {
     public ResponseEntity<List<Articulos>> searchAll() {
         List<Articulos> articulos = articuloService.getAll();
         if (articulos.isEmpty()) {
-            return ResponseEntity.noContent().build(); // 204 No Content si no hay artículos
+            return ResponseEntity.noContent().build(); // 204 No Content si no hay artï¿½culos
         }
         
         return ResponseEntity.ok(articulos);
@@ -79,6 +80,13 @@ public class ArticuloController {
     public ResponseEntity<Void> deleteArticulo(@PathVariable int id) {
         articuloService.deleteArticuloById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/aemps")
+    public ResponseEntity<Articulos> linkAemps(@PathVariable int id,
+                                                @RequestBody Map<String, String> body) {
+        Articulos updated = articuloService.linkAemps(id, body.get("aempsCode"), body.get("laboratorio"));
+        return ResponseEntity.ok(updated);
     }
     
  

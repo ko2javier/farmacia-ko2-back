@@ -30,11 +30,11 @@ public class ArticuloService {
 		 
 		    List<Articulos> updatedList = new ArrayList<>();
 		    for (UpdateDTO update : updates) {
-		        // 2- Busco el artículo por código
+		        // 2- Busco el artï¿½culo por cï¿½digo
 		    	
 		        Articulos articulo = art.findByCodigo(update.getCodigo());
 		        if (articulo == null || articulo.getCantidad() < update.getCantidadVendida()) {
-		            throw new RuntimeException("Artículo no encontrado o cantidad insuficiente: " + update.getCodigo());
+		            throw new RuntimeException("Artï¿½culo no encontrado o cantidad insuficiente: " + update.getCodigo());
 		        }
 		        // 3- hago update to stock
 		        articulo.setCantidad(articulo.getCantidad() - update.getCantidadVendida());
@@ -46,12 +46,12 @@ public class ArticuloService {
 		}
 	 
 	 public Articulos updateItem(UpdateDTO updates) {
-		    // 1- Busco el artículo
+		    // 1- Busco el artï¿½culo
 		 
 		 Articulos articulo = art.findByCodigo(updates.getCodigo());
 		 
 		        if (articulo == null ) {
-		            throw new RuntimeException("Artículo no encontrado : " + updates.getCodigo());
+		            throw new RuntimeException("Artï¿½culo no encontrado : " + updates.getCodigo());
 		        }
 		        // 3- hago update to stock
 		        articulo.setCantidad(updates.getCantidad());
@@ -64,12 +64,12 @@ public class ArticuloService {
 		
 		}
 	 
-	// Método to generar un código único 13dig
+	// Mï¿½todo to generar un cï¿½digo ï¿½nico 13dig
 	 
 	    private String generateUniqueCode() {
 	        String code; long randomNum;
 	        do {
-	            // número aleatorio entre 0 y 9,999,999,999,999 
+	            // nï¿½mero aleatorio entre 0 y 9,999,999,999,999 
 	             randomNum = (long) (Math.random() * 10000000000000L);
 	             
 	            code = String.format("%013d", randomNum);
@@ -79,27 +79,38 @@ public class ArticuloService {
 	    }
 	 
 	 public Articulos InsertItem(Insert_DTO updates) {
-		 String code = generateUniqueCode(); // Genero un codigo unico y lo añado al nuevo articulo
+		 String code = generateUniqueCode(); // Genero un codigo unico y lo aï¿½ado al nuevo articulo
 		 
 		 		 // Verifico que updates no sea null
 		        if (updates == null ) {
-		            throw new RuntimeException("Artículo Vacio: ");
+		            throw new RuntimeException("Artï¿½culo Vacio: ");
 		        }
 		   
 		        //public Articulos(String nombre, String categoria, double precio, int cantidad, String codigo)
 		        
 		        // 2- Devuelvo el articulo creado ok
 		        
-		        return art.save(new Articulos(updates.getNombre(), updates.getCategoria(), updates.getPrecio(),
-		        		 updates.getCantidad(), code));       
+		        Articulos nuevo = new Articulos(updates.getNombre(), updates.getCategoria(), updates.getPrecio(),
+		        		 updates.getCantidad(), code);
+		        nuevo.setAempsCode(updates.getAempsCode());
+		        nuevo.setLaboratorio(updates.getLaboratorio());
+		        return art.save(nuevo);
 		}
 
 	 
 	 public void deleteArticuloById(int id) {
 		    if (!art.existsById(id)) {
-		        throw new RuntimeException("Artículo no encontrado con id: " + id);
+		        throw new RuntimeException("Artï¿½culo no encontrado con id: " + id);
 		    }
 		    art.deleteById(id);
+		}
+
+	 public Articulos linkAemps(int id, String aempsCode, String laboratorio) {
+		    Articulos articulo = art.findById(id)
+		            .orElseThrow(() -> new RuntimeException("ArtÃ­culo no encontrado con id: " + id));
+		    articulo.setAempsCode(aempsCode);
+		    articulo.setLaboratorio(laboratorio);
+		    return art.save(articulo);
 		}
 
 
