@@ -33,4 +33,4 @@ build/
 .vscode/
 
 ### App binary ###
-app.jar
+# app.jar tracked intentionally for Railway deploy
