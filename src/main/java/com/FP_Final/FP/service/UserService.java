@@ -35,6 +35,10 @@ public class UserService {
 	}
 
 	// M�todo para obtener un usuario por su username
+	public Optional<Users> getUserById(int id) {
+		return userRepository.findById(id);
+	}
+
 	public Optional<Users> getUserByUsername(String username) {
 		return userRepository.findByUsername(username);
 	}
