@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.FP_Final.FP.model.Articulos;
 import com.FP_Final.FP.model.Insert_DTO;
@@ -26,6 +27,7 @@ public class ArticuloService {
 	        return art.findByNombreContaining(keyword);
 	    }
 	 
+	 @Transactional
 	 public List<Articulos> updateStockBatch(List<UpdateDTO> updates) {
 		    // 1- Itero sobre la lista de actualizaciones
 		 

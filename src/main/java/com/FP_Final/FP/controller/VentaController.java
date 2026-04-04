@@ -58,14 +58,10 @@ public class VentaController {
     }
 
     @DeleteMapping("/cancelar/{id}")
-    public ResponseEntity<?> cancelarVenta(@PathVariable Integer id, @RequestParam String responsable) {
-        try {
-            ventaService.cancelarVenta(id, responsable);
-            String username = SecurityContextHolder.getContext().getAuthentication().getName();
-            activityLogService.log(username, "CANCEL_SALE", "1", request.getRemoteAddr());
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error al cancelar: " + e.getMessage());
-        }
+    public ResponseEntity<Void> cancelarVenta(@PathVariable Integer id, @RequestParam String responsable) {
+        ventaService.cancelarVenta(id, responsable);
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        activityLogService.log(username, "CANCEL_SALE", "1", request.getRemoteAddr());
+        return ResponseEntity.ok().build();
     }
 }

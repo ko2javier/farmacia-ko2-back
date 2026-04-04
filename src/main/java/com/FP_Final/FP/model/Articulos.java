@@ -37,6 +37,10 @@ public class Articulos {
     @Column(nullable = false, length = 13, unique = true)
     private String codigo;
 
+    @Version
+    @Column(nullable = false)
+    private int version;
+
     @Column(name = "aemps_code", length = 10)
     private String aempsCode;
 
