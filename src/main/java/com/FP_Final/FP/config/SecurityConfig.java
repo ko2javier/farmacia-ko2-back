@@ -33,7 +33,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(request -> {
                     var config = new org.springframework.web.cors.CorsConfiguration();
 
-                    // 👇 AQUÍ ESTÁ EL CAMBIO IMPORTANTE 👇
+                    // AQUÍ ESTÁ EL CAMBIO IMPORTANTE
                     config.setAllowedOrigins(List.of(
                             "http://localhost:4200",                                      // Para tus pruebas locales
                             "https://farmacia-ko2.up.railway.app",                         // <--- ¡TU NUEVO NOMBRE DE FRONTEND!
@@ -50,10 +50,15 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // 👇 ESTO ES VITAL PARA EL ERROR 403 EN LOGIN 👇
+                        //  ESTO ES VITAL PARA EL ERROR 403 EN LOGIN
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                         .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers(
+                            "/swagger-ui/**",
+                            "/swagger-ui.html",
+                            "/v3/api-docs/**"
+                        ).permitAll()
                         .requestMatchers("/activity-log/**").hasRole("SUPERADMIN")
                         .anyRequest().authenticated()
                 )
