@@ -1,10 +1,14 @@
 package com.FP_Final.FP.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 public class MatchRequestDTO {
 
+    @JsonProperty("busqueda_usuario")
     private String busquedaUsuario;
+
+    @JsonProperty("lista_limpia")
     private List<MedicamentoAempsDTO> listaLimpia;
 
     public MatchRequestDTO() {}
