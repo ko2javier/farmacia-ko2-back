@@ -73,6 +73,7 @@ public class CimaController {
         }
 
         // 2. Consultar AEMPS
+        System.out.println("Llamando a AEMPS con nombre: " + nombre);
         String urlAemps = AEMPS_URL + "?nombre=" + nombre + "&pagina=1&tamanioPagina=100";
         Map<String, Object> aempsResponse;
         try {
@@ -91,6 +92,7 @@ public class CimaController {
                 lista.add(new MedicamentoAempsDTO(id, nombreMed));
             }
         }
+        System.out.println("Resultados AEMPS: " + lista.size());
 
         // 4. Lista vacía → 404
         if (lista.isEmpty()) {

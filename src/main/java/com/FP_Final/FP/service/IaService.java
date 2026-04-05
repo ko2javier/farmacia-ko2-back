@@ -20,6 +20,7 @@ public class IaService {
     private String iaServiceApiKey;
 
     public Map<String, Object> llamarMicroservicioIa(String busqueda, List<MedicamentoAempsDTO> lista) {
+        System.out.println("Llamando a FastAPI en: " + iaServiceUrl);
         MatchRequestDTO requestBody = new MatchRequestDTO(busqueda, lista);
 
         HttpHeaders headers = new HttpHeaders();
@@ -36,6 +37,8 @@ public class IaService {
                 Map.class
         );
 
-        return response.getBody();
+        Map<String, Object> resultado = response.getBody();
+        System.out.println("Respuesta FastAPI: " + resultado);
+        return resultado;
     }
 }
