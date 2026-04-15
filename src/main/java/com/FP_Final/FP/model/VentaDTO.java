@@ -1,57 +1,35 @@
 package com.FP_Final.FP.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "Datos para registrar una nueva venta")
 public class VentaDTO {
-	
-	 private String dnicliente;
-	    private String nameproducto;
-	    private int cantidad;
-	    private double importe;
-	    private String codigo; // Nuevo campo para el código del artículo
-	    
-	    public String getCodigo() {
-			return codigo;
-		}
 
+	@Schema(example = "12345678A", description = "DNI del cliente")
+	private String dnicliente;
 
-		public void setCodigo(String codigo) {
-			this.codigo = codigo;
-		}
+	@Schema(example = "Ibuprofeno 600mg", description = "Nombre del producto vendido")
+	private String nameproducto;
 
+	@Schema(example = "2", description = "Cantidad de unidades vendidas")
+	private int cantidad;
 
-		
-	    public VentaDTO() {}
-	    
+	@Schema(example = "25.90", description = "Importe total de la venta (â‚¬)")
+	private double importe;
 
-		public String getDnicliente() {
-			return dnicliente;
-		}
+	@Schema(example = "ART-00123", description = "CÃ³digo interno del artÃ­culo")
+	private String codigo;
 
-		public void setDnicliente(String dnicliente) {
-			this.dnicliente = dnicliente;
-		}
+	public VentaDTO() {}
 
-		public String getNameproducto() {
-			return nameproducto;
-		}
-
-		public void setNameproducto(String nameproducto) {
-			this.nameproducto = nameproducto;
-		}
-
-		public int getCantidad() {
-			return cantidad;
-		}
-
-		public void setCantidad(int cantidad) {
-			this.cantidad = cantidad;
-		}
-
-		public double getImporte() {
-			return importe;
-		}
-
-		public void setImporte(double importe) {
-			this.importe = importe;
-		}
-
+	public String getCodigo() { return codigo; }
+	public void setCodigo(String codigo) { this.codigo = codigo; }
+	public String getDnicliente() { return dnicliente; }
+	public void setDnicliente(String dnicliente) { this.dnicliente = dnicliente; }
+	public String getNameproducto() { return nameproducto; }
+	public void setNameproducto(String nameproducto) { this.nameproducto = nameproducto; }
+	public int getCantidad() { return cantidad; }
+	public void setCantidad(int cantidad) { this.cantidad = cantidad; }
+	public double getImporte() { return importe; }
+	public void setImporte(double importe) { this.importe = importe; }
 }

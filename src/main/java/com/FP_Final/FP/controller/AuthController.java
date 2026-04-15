@@ -1,5 +1,9 @@
 package com.FP_Final.FP.controller;
 
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -47,7 +51,19 @@ public class AuthController {
             consumes = "application/json",
             produces = "application/json"
     )
-    public Map<String, String> login(@RequestBody Map<String, String> loginData) {
+    public Map<String, String> login(
+            @RequestBody(
+                description = "Credenciales de acceso",
+                required = true,
+                content = @Content(
+                    schema = @Schema(implementation = Map.class),
+                    examples = @ExampleObject(
+                        name = "Ejemplo login",
+                        value = "{\"username\": \"ko2\", \"password\": \"1234\"}"
+                    )
+                )
+            )
+            @org.springframework.web.bind.annotation.RequestBody Map<String, String> loginData) {
         String username = loginData.get("username");
         String password = loginData.get("password");
         System.out.println("ENTR\u00d3 AL LOGIN");
