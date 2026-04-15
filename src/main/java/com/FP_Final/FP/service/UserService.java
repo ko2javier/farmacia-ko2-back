@@ -75,9 +75,9 @@ public class UserService {
 	    Users usuario_update = userRepository.findById(user.getId())
 	            .orElseThrow(() -> new RuntimeException("Error: No se encuentra el usuario con ID " + user.getId()));
 
-	    // 2. Buscamos la authority. OJO: Usamos orElse(null) para que no explote si no existe.
-	    Authorities authority_update = authorities_Repo.findById(user.getId())
-	            .orElse(null); 
+	    // 2. Buscamos la authority por username (el ID de authorities es independiente del de users).
+	    Authorities authority_update = authorities_Repo.findByUsername(usuario_update.getUsername())
+	            .orElse(null);
 
 	    // 3. Actualizamos datos del usuario
 	    usuario_update.setPermiso(user.getPermiso());
