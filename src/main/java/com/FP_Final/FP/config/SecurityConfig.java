@@ -40,7 +40,6 @@ public class SecurityConfig {
                             "https://pharma.ko2-oreilly.com",
                             "https://pharma-b.ko2-oreilly.com",
                             "https://farmacia-ko2-frontend.vercel.app",
-                            "https://backend-fppharma-production.up.railway.app",
                             "https://farmacia-ko2-back-production.up.railway.app"
                     ));
 
