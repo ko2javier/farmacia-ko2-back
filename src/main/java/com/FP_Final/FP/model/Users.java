@@ -1,6 +1,7 @@
 package com.FP_Final.FP.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import jakarta.persistence.*;
 
 @Entity
@@ -14,7 +15,7 @@ public class Users {
     @Column(nullable = false, unique = true, length = 50)
     private String username;
 
-    @JsonIgnore
+    @JsonProperty(access = Access.WRITE_ONLY)
     @Column(nullable = false, length = 255)
     private String password;
 
