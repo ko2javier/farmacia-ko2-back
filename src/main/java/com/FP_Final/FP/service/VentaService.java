@@ -43,7 +43,6 @@ public class VentaService {
 	}
 
 
-	
 
 	public List<Ventas> getAll() {
 		return ventas_repository.findAll();
@@ -85,8 +84,6 @@ public class VentaService {
 					dto.getImporte(),dto.getCodigo()
 					
 				)));
-        	
-        	
             
         }
 

@@ -35,11 +35,12 @@ public class SecurityConfig {
 
                     // AQUÍ ESTÁ EL CAMBIO IMPORTANTE
                     config.setAllowedOrigins(List.of(
-                            "http://localhost:4200",                                      // Para tus pruebas locales
-                            "https://farmacia-ko2.up.railway.app",                         // <--- ¡TU NUEVO NOMBRE DE FRONTEND!
+                            "http://localhost:4200",
+                            "https://farmacia-ko2.up.railway.app",
                             "https://pharma.ko2-oreilly.com",
                             "https://pharma-b.ko2-oreilly.com",
-                            "https://farmacia-ko2-frontend.vercel.app"
+                            "https://farmacia-ko2-frontend.vercel.app",
+                            "https://farmacia-ko2-back-production.up.railway.app"
                     ));
 
                     config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
@@ -60,6 +61,7 @@ public class SecurityConfig {
                             "/v3/api-docs/**"
                         ).permitAll()
                         .requestMatchers("/activity-log/**").hasRole("SUPERADMIN")
+                        .requestMatchers("/api/cima/validar").authenticated()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
