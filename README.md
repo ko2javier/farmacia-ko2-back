@@ -2,8 +2,17 @@
 
 REST API for a pharmacy management system built as a final project for a Higher Vocational Degree in Web Application Development (DAW).
 
-**Live demo:** [https://pharma.ko2-oreilly.com](https://pharma.ko2-oreilly.com)  
-**Frontend repo:** Angular SPA (separate repository)
+**Live demo:** [https://pharma.ko2-oreilly.com](https://pharma.ko2-oreilly.com)
+
+---
+
+## Part of the KO2Pharma project
+
+| Repo | Tech | Description |
+|------|------|-------------|
+| [farmacia-ko2-frontend](https://github.com/ko2javier/farmacia-ko2-frontend) | Angular 19 | SPA frontend |
+| **This repo** | Spring Boot + Java 21 | REST API backend |
+| [farmacia-ko2-ia](https://github.com/ko2javier/farmacia-ko2-ia) | Python + FastAPI | AI semantic matching microservice |
 
 ---
 
