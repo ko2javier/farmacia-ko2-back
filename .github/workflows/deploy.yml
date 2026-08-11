@@ -1,4 +1,4 @@
-name: Deploy to AWS
+name: Deploy
 
 on:
   push:
@@ -30,5 +30,6 @@ jobs:
             JWT_SECRET=${{ secrets.JWT_SECRET }}
             IA_SERVICE_URL=http://fp_gpt:8000
             IA_SERVICE_API_KEY=${{ secrets.IA_SERVICE_API_KEY }}
+            HOST_PORT=${{ secrets.HOST_PORT || '5000' }}
             ENVEOF
             docker compose up --build -d app
