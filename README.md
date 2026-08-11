@@ -27,7 +27,7 @@ REST API for the **KO2Pharma** pharmacy management system, built as the final pr
 | Spring Data JPA | 3.4.2 | ORM / data access |
 | MySQL (Aiven Cloud) | — | Production database |
 | SpringDoc OpenAPI | 2.8.6 | Swagger UI documentation |
-| Docker Compose + GitHub Actions | — | Containerized deployment with CI/CD |
+| Railway | — | Continuous deployment (CI/CD from GitHub) |
 
 ---
 
@@ -202,7 +202,7 @@ Swagger UI: `http://localhost:5000/swagger-ui/index.html`
 
 ## Production deployment
 
-Deployed on an AWS EC2 instance (Ubuntu + Docker Compose), alongside the AI microservice on the same host, communicating over an internal Docker network. A GitHub Actions CI/CD pipeline builds and redeploys the service on every push to `master`.
+Currently deployed on **Railway** with automatic CI/CD from GitHub. A migration to a self-managed Docker Compose deployment with a GitHub Actions pipeline is in progress — AWS EC2 as an intermediate step, with Hetzner as the final target.
 
 ---
 
