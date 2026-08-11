@@ -31,4 +31,4 @@ jobs:
             IA_SERVICE_URL=http://fp_gpt:8000
             IA_SERVICE_API_KEY=${{ secrets.IA_SERVICE_API_KEY }}
             ENVEOF
-            docker-compose up --build -d app
+            docker compose up --build -d app
