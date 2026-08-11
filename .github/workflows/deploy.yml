@@ -1,0 +1,34 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ubuntu
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            if [ -d ~/apps/back/.git ]; then
+              cd ~/apps/back
+              git pull
+            else
+              git clone https://github.com/ko2javier/farmacia-ko2-back.git ~/apps/back
+              cd ~/apps/back
+            fi
+            cat > .env << 'ENVEOF'
+            DB_URL=${{ secrets.DB_URL }}
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            IA_SERVICE_URL=http://fp_gpt:8000
+            IA_SERVICE_API_KEY=${{ secrets.IA_SERVICE_API_KEY }}
+            ENVEOF
+            docker-compose up --build -d app
