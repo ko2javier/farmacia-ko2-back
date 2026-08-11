@@ -36,8 +36,9 @@ public class CimaController {
     @Autowired
     private HttpServletRequest request;
 
+    // GET /api/cima/medicamento — proxy para obtener ficha completa de un medicamento AEMPS por número de registro
     @GetMapping("/medicamento")
-    public ResponseEntity<String> getMedicamento(@RequestParam String nregistro) {
+    public ResponseEntity<String> obtenerMedicamento(@RequestParam String nregistro) {
         String urlDestino = "https://cima.aemps.es/cima/rest/medicamento?nregistro=" + nregistro;
         try {
             String respuesta = new RestTemplate().getForObject(urlDestino, String.class);
@@ -47,6 +48,7 @@ public class CimaController {
         }
     }
 
+    // GET /api/cima/buscar — busca medicamentos en AEMPS por nombre (con paginación)
     @GetMapping("/buscar")
     public ResponseEntity<String> buscarMedicamentos(
             @RequestParam String nombre,
@@ -61,51 +63,50 @@ public class CimaController {
         }
     }
 
+    // GET /api/cima/validar — comprueba si existe en inventario, consulta AEMPS y llama al microservicio IA
     @GetMapping("/validar")
     public ResponseEntity<?> validarMedicamento(@RequestParam String nombre) {
 
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        // 1. Comprobar si ya existe en inventario
+        // 1. Si ya existe en inventario, no tiene sentido continuar
         if (!articulosRepository.findByNombreContaining(nombre).isEmpty()) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(Map.of("mensaje", "El producto ya existe en el inventario"));
         }
 
-        // 2. Consultar AEMPS
-        System.out.println("Llamando a AEMPS con nombre: " + nombre);
+        // 2. Consultamos AEMPS con hasta 100 resultados para dar margen al motor IA
         String urlAemps = AEMPS_URL + "?nombre=" + nombre + "&pagina=1&tamanioPagina=100";
-        Map<String, Object> aempsResponse;
+        Map<String, Object> respuestaAemps;
         try {
-            aempsResponse = new RestTemplate().getForObject(urlAemps, Map.class);
+            respuestaAemps = new RestTemplate().getForObject(urlAemps, Map.class);
         } catch (Exception e) {
             throw new ExternalServiceException("Error conectando con AEMPS");
         }
 
-        // 3. Mapear resultados a List<MedicamentoAempsDTO>
-        List<MedicamentoAempsDTO> lista = new ArrayList<>();
-        if (aempsResponse != null && aempsResponse.containsKey("resultados")) {
-            List<Map<String, Object>> resultados = (List<Map<String, Object>>) aempsResponse.get("resultados");
-            for (Map<String, Object> item : resultados) {
-                String id = item.get("nregistro") != null ? item.get("nregistro").toString() : "";
-                String nombreMed = item.get("nombre") != null ? item.get("nombre").toString() : "";
-                lista.add(new MedicamentoAempsDTO(id, nombreMed));
+        // 3. Convertimos los resultados crudos de AEMPS al DTO limpio que entiende la IA
+        List<MedicamentoAempsDTO> listaMedicamentos = new ArrayList<>();
+        if (respuestaAemps != null && respuestaAemps.containsKey("resultados")) {
+            List<Map<String, Object>> resultados = (List<Map<String, Object>>) respuestaAemps.get("resultados");
+            for (Map<String, Object> medicamento : resultados) {
+                String id = medicamento.get("nregistro") != null ? medicamento.get("nregistro").toString() : "";
+                String nombreMedicamento = medicamento.get("nombre") != null ? medicamento.get("nombre").toString() : "";
+                listaMedicamentos.add(new MedicamentoAempsDTO(id, nombreMedicamento));
             }
         }
-        System.out.println("Resultados AEMPS: " + lista.size());
 
-        // 4. Lista vacía → 404
-        if (lista.isEmpty()) {
+        // 4. Sin resultados → el medicamento no existe en AEMPS
+        if (listaMedicamentos.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("mensaje", "No se encontraron resultados en AEMPS"));
         }
 
-        // 5. Llamar al microservicio IA
-        Map<String, Object> iaResult = iaService.llamarMicroservicioIa(nombre, lista);
+        // 5. Enviamos al microservicio IA para que encuentre la mejor coincidencia
+        Map<String, Object> resultadoIa = iaService.llamarMicroservicioIa(nombre, listaMedicamentos);
 
-        // 6. Registrar en activity_log
+        // 6. Registramos la búsqueda IA en el historial de actividad
         activityLogService.log(username, "IA_MATCH", nombre, request.getRemoteAddr());
 
-        return ResponseEntity.ok(iaResult);
+        return ResponseEntity.ok(resultadoIa);
     }
 }

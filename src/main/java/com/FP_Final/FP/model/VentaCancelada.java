@@ -41,7 +41,7 @@ public class VentaCancelada {
         this.fecha = LocalDateTime.now();
     }
 
-    // --- GETTERS Y SETTERS (Genéralos con Alt+Insert o copia estos básicos) ---
+    // --- GETTERS Y SETTERS
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

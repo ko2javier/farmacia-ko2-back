@@ -46,6 +46,7 @@ public class AuthController {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    // POST /auth/login — autentica al usuario y devuelve un token JWT si las credenciales son correctas
     @PostMapping(
             value = "/login",
             consumes = "application/json",
@@ -63,39 +64,41 @@ public class AuthController {
                     )
                 )
             )
-            @org.springframework.web.bind.annotation.RequestBody Map<String, String> loginData) {
-        String username = loginData.get("username");
-        String password = loginData.get("password");
-        System.out.println("ENTR\u00d3 AL LOGIN");
-        System.out.println(loginData);
+            @org.springframework.web.bind.annotation.RequestBody Map<String, String> credenciales) {
+        String username = credenciales.get("username");
+        String password = credenciales.get("password");
 
         try {
+            // Spring Security verifica username y password contra la base de datos
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(username, password)
             );
 
-            String role = jdbcTemplate.queryForObject(
+            // Recuperamos el rol del usuario para incluirlo en el token
+            String rol = jdbcTemplate.queryForObject(
                     "SELECT permiso FROM users WHERE username = ?",
                     new Object[]{username},
                     String.class
             );
 
-            String token = jwtUtil.generateToken(username, role);
+            String token = jwtUtil.generateToken(username, rol);
 
             activityLogService.log(username, "LOGIN_SUCCESS", username, request.getRemoteAddr());
 
-            Map<String, String> response = new HashMap<>();
-            response.put("token", token);
-            return response;
+            Map<String, String> respuesta = new HashMap<>();
+            respuesta.put("token", token);
+            return respuesta;
 
         } catch (AuthenticationException e) {
+            // Credenciales incorrectas — registramos el intento fallido
             activityLogService.log(username != null ? username : "unknown", "LOGIN_FAILED", username, request.getRemoteAddr());
             throw e;
         }
     }
 
+    // GET /auth/protected — endpoint de prueba para verificar que el token es válido
     @GetMapping("/protected")
     public String protectedEndpoint() {
-        return "Este es un endpoint protegido. Est\u00e1s autenticado.";
+        return "Este es un endpoint protegido. Estás autenticado.";
     }
 }

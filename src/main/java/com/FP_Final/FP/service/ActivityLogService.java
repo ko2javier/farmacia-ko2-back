@@ -13,20 +13,22 @@ import java.util.List;
 public class ActivityLogService {
 
     @Autowired
-    private ActivityLogRepository repo;
+    private ActivityLogRepository activityLogRepository;
 
+    // Registra una acción en el historial de actividad con fecha, hora e IP del cliente
     public void log(String username, String action, String detail, String ip) {
-        ActivityLog entry = new ActivityLog();
-        entry.setUsername(username);
-        entry.setAction(action);
-        entry.setDetail(detail);
-        entry.setIpAddress(ip);
-        entry.setFecha(LocalDate.now());
-        entry.setHora(LocalTime.now());
-        repo.save(entry);
+        ActivityLog registro = new ActivityLog();
+        registro.setUsername(username);
+        registro.setAction(action);
+        registro.setDetail(detail);
+        registro.setIpAddress(ip);
+        registro.setFecha(LocalDate.now());
+        registro.setHora(LocalTime.now());
+        activityLogRepository.save(registro);
     }
 
+    // Devuelve todos los registros ordenados del más reciente al más antiguo
     public List<ActivityLog> getAll() {
-        return repo.findAllByOrderByFechaDescHoraDesc();
+        return activityLogRepository.findAllByOrderByFechaDescHoraDesc();
     }
 }

@@ -16,8 +16,9 @@ public class ActivityLogController {
     @Autowired
     private ActivityLogService activityLogService;
 
+    // GET /activity-log/all — devuelve el historial completo de acciones (solo SUPERADMIN)
     @GetMapping("/all")
-    public List<ActivityLog> getAll() {
+    public List<ActivityLog> obtenerTodos() {
         return activityLogService.getAll();
     }
 }

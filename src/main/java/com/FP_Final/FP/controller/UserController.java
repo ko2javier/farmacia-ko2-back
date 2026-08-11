@@ -6,7 +6,6 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,103 +40,112 @@ public class UserController {
     @Autowired
     private HttpServletRequest request;
 
-    private String getCallerRole() {
+    // Extrae el rol del usuario autenticado (sin el prefijo "ROLE_")
+    private String obtenerRolDelCaller() {
         return SecurityContextHolder.getContext().getAuthentication()
                 .getAuthorities().stream()
                 .findFirst()
-                .map(a -> a.getAuthority().replace("ROLE_", ""))
+                .map(authority -> authority.getAuthority().replace("ROLE_", ""))
                 .orElse("");
     }
 
+    // GET /users/all — devuelve la lista completa de usuarios
     @GetMapping("/all")
-    public ResponseEntity<List<Users>> getAllUsers() {
-        List<Users> users = userService.getAllUsers();
-        if (users.isEmpty()) {
+    public ResponseEntity<List<Users>> obtenerTodos() {
+        List<Users> usuarios = userService.getAllUsers();
+        if (usuarios.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok(users);
+        return ResponseEntity.ok(usuarios);
     }
 
+    // DELETE /users/{id} — elimina un usuario (ADMIN no puede borrar ADMIN ni SUPERADMIN)
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable int id) {
-        Optional<Users> userOpt = userService.getUserById(id);
-        if (userOpt.isEmpty()) {
+    public ResponseEntity<?> eliminarUsuario(@PathVariable int id) {
+        Optional<Users> usuarioOpt = userService.getUserById(id);
+        if (usuarioOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
-        String callerRole = getCallerRole();
-        String callerUsername = SecurityContextHolder.getContext().getAuthentication().getName();
-        String targetPermiso = userOpt.get().getPermiso();
-        String targetUsername = userOpt.get().getUsername();
+        String rolCaller = obtenerRolDelCaller();
+        String usernameCaller = SecurityContextHolder.getContext().getAuthentication().getName();
+        String permisoObjetivo = usuarioOpt.get().getPermiso();
+        String usernameObjetivo = usuarioOpt.get().getUsername();
 
-        if ("ADMIN".equals(callerRole) && ("ADMIN".equals(targetPermiso) || "SUPERADMIN".equals(targetPermiso))) {
-            activityLogService.log(callerUsername, "FORBIDDEN_ACTION",
-                    "Intento de DELETE sobre usuario " + targetUsername + " con rol " + targetPermiso,
+        // Restricción: ADMIN no puede eliminar usuarios de igual o mayor jerarquía
+        if ("ADMIN".equals(rolCaller) && ("ADMIN".equals(permisoObjetivo) || "SUPERADMIN".equals(permisoObjetivo))) {
+            activityLogService.log(usernameCaller, "FORBIDDEN_ACTION",
+                    "Intento de DELETE sobre usuario " + usernameObjetivo + " con rol " + permisoObjetivo,
                     request.getRemoteAddr());
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body("Un ADMIN no puede eliminar usuarios con rol ADMIN o SUPERADMIN");
         }
 
         userService.deleteUserById(id);
-        activityLogService.log(callerUsername, "DELETE_USER", targetUsername, request.getRemoteAddr());
+        activityLogService.log(usernameCaller, "DELETE_USER", usernameObjetivo, request.getRemoteAddr());
         return ResponseEntity.noContent().build();
     }
 
+    // GET /users/{username} — busca un usuario por su nombre de usuario
     @GetMapping("/{username}")
-    public ResponseEntity<?> getUserByUsername(@PathVariable String username) {
-        Optional<Users> userOptional = userService.getUserByUsername(username);
-        if (userOptional.isPresent()) {
-            return ResponseEntity.ok(userOptional.get());
+    public ResponseEntity<?> obtenerPorUsername(@PathVariable String username) {
+        Optional<Users> usuarioOpt = userService.getUserByUsername(username);
+        if (usuarioOpt.isPresent()) {
+            return ResponseEntity.ok(usuarioOpt.get());
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found with username: " + username);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado: " + username);
         }
     }
 
+    // POST /users/insert — crea un nuevo usuario (ADMIN solo puede crear SELLER)
     @PostMapping("/insert")
     public ResponseEntity<?> insertarUsuario(@RequestBody Insert_User_DTO insertDto) {
-        String callerRole = getCallerRole();
-        String callerUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        String rolCaller = obtenerRolDelCaller();
+        String usernameCaller = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        if ("ADMIN".equals(callerRole) && !"SELLER".equals(insertDto.getPermiso())) {
-            activityLogService.log(callerUsername, "FORBIDDEN_ACTION",
+        // Restricción: ADMIN solo puede crear usuarios con rol SELLER
+        if ("ADMIN".equals(rolCaller) && !"SELLER".equals(insertDto.getPermiso())) {
+            activityLogService.log(usernameCaller, "FORBIDDEN_ACTION",
                     "Intento de crear usuario con rol " + insertDto.getPermiso(),
                     request.getRemoteAddr());
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body("Un ADMIN solo puede crear usuarios con rol SELLER");
         }
 
-        Optional<Users> userOpt = userRepository.findByUsername(insertDto.getUsername());
-        if (userOpt.isPresent()) {
+        Optional<Users> usuarioExistente = userRepository.findByUsername(insertDto.getUsername());
+        if (usuarioExistente.isPresent()) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("El usuario ya existe");
         }
 
         Users nuevoUsuario = userService.crearUsuario(insertDto.getUsername(), insertDto.getPassword(), insertDto.getPermiso());
-        activityLogService.log(callerUsername, "INSERT_USER", nuevoUsuario.getUsername(), request.getRemoteAddr());
+        activityLogService.log(usernameCaller, "INSERT_USER", nuevoUsuario.getUsername(), request.getRemoteAddr());
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevoUsuario);
     }
 
+    // PUT /users/update — actualiza datos de un usuario (ADMIN no puede modificar ADMIN ni SUPERADMIN)
     @PutMapping("/update")
-    public ResponseEntity<?> updateUser(@RequestBody Users user) {
-        String callerRole = getCallerRole();
-        String callerUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+    public ResponseEntity<?> actualizarUsuario(@RequestBody Users usuario) {
+        String rolCaller = obtenerRolDelCaller();
+        String usernameCaller = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        Optional<Users> targetOpt = userService.getUserById(user.getId());
-        if (targetOpt.isEmpty()) {
+        Optional<Users> usuarioObjetivoOpt = userService.getUserById(usuario.getId());
+        if (usuarioObjetivoOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
-        String targetPermiso = targetOpt.get().getPermiso();
-        String targetUsername = targetOpt.get().getUsername();
+        String permisoObjetivo = usuarioObjetivoOpt.get().getPermiso();
+        String usernameObjetivo = usuarioObjetivoOpt.get().getUsername();
 
-        if ("ADMIN".equals(callerRole) && ("ADMIN".equals(targetPermiso) || "SUPERADMIN".equals(targetPermiso))) {
-            activityLogService.log(callerUsername, "FORBIDDEN_ACTION",
-                    "Intento de modificar usuario " + targetUsername + " con rol " + targetPermiso,
+        // Restricción: ADMIN no puede modificar usuarios de igual o mayor jerarquía
+        if ("ADMIN".equals(rolCaller) && ("ADMIN".equals(permisoObjetivo) || "SUPERADMIN".equals(permisoObjetivo))) {
+            activityLogService.log(usernameCaller, "FORBIDDEN_ACTION",
+                    "Intento de modificar usuario " + usernameObjetivo + " con rol " + permisoObjetivo,
                     request.getRemoteAddr());
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body("Un ADMIN no puede modificar usuarios con rol ADMIN o SUPERADMIN");
         }
 
-        Users updatedUser = userService.Update_Usuario(user);
-        return ResponseEntity.ok(updatedUser);
+        Users usuarioActualizado = userService.actualizarUsuario(usuario);
+        return ResponseEntity.ok(usuarioActualizado);
     }
 }

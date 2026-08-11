@@ -13,32 +13,32 @@ import java.util.Map;
 @Service
 public class IaService {
 
+    // URL del microservicio Python/FastAPI — se configura en application.properties
     @Value("${ia.service.url}")
     private String iaServiceUrl;
 
+    // Clave API para autenticarse con el microservicio IA
     @Value("${ia.service.api-key}")
     private String iaServiceApiKey;
 
-    public Map<String, Object> llamarMicroservicioIa(String busqueda, List<MedicamentoAempsDTO> lista) {
-        System.out.println("Llamando a FastAPI en: " + iaServiceUrl);
-        MatchRequestDTO requestBody = new MatchRequestDTO(busqueda, lista);
+    // Envía el nombre buscado y la lista AEMPS al microservicio IA para que encuentre la mejor coincidencia
+    public Map<String, Object> llamarMicroservicioIa(String busqueda, List<MedicamentoAempsDTO> listaMedicamentos) {
+        MatchRequestDTO cuerpoRequest = new MatchRequestDTO(busqueda, listaMedicamentos);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("x-api-key", iaServiceApiKey);
+        HttpHeaders cabeceras = new HttpHeaders();
+        cabeceras.setContentType(MediaType.APPLICATION_JSON);
+        cabeceras.set("x-api-key", iaServiceApiKey);
 
-        HttpEntity<MatchRequestDTO> entity = new HttpEntity<>(requestBody, headers);
+        HttpEntity<MatchRequestDTO> peticion = new HttpEntity<>(cuerpoRequest, cabeceras);
 
         RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<Map> response = restTemplate.exchange(
+        ResponseEntity<Map> respuesta = restTemplate.exchange(
                 iaServiceUrl + "/api/v1/ia/match",
                 HttpMethod.POST,
-                entity,
+                peticion,
                 Map.class
         );
 
-        Map<String, Object> resultado = response.getBody();
-        System.out.println("Respuesta FastAPI: " + resultado);
-        return resultado;
+        return respuesta.getBody();
     }
 }

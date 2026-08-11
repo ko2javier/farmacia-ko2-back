@@ -8,23 +8,22 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/cancelaciones") // Ruta base simplificada
+@RequestMapping("/cancelaciones")
 @CrossOrigin(origins = "*")
 public class VentaCanceladaController {
 
     @Autowired
-    private VentaCanceladaService service;
+    private VentaCanceladaService ventaCanceladaService;
 
-    // GET: Dame la lista (No necesita argumentos)
+    // GET /cancelaciones — devuelve el historial completo de ventas canceladas
     @GetMapping
     public List<VentaCancelada> listarCancelaciones() {
-        return service.obtenerTodas();
+        return ventaCanceladaService.obtenerTodas();
     }
 
-
+    // POST /cancelaciones — registra una nueva cancelación en el historial
     @PostMapping
-    public VentaCancelada guardarCancelacion(@RequestBody VentaCancelada venta) {
-
-        return service.registrarCancelacion(venta);
+    public VentaCancelada guardarCancelacion(@RequestBody VentaCancelada ventaCancelada) {
+        return ventaCanceladaService.registrarCancelacion(ventaCancelada);
     }
 }

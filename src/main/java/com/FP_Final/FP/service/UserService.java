@@ -4,11 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import com.FP_Final.FP.model.Authorities;
 import com.FP_Final.FP.model.Users;
@@ -20,90 +16,75 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserService {
 
-	@Autowired
-	private PasswordEncoder passwordEncoder;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
-	@Autowired
-	private UserRepository userRepository;
+    @Autowired
+    private UserRepository userRepository;
 
-	@Autowired
-	private AuthoritiesRepository authorities_Repo;
+    @Autowired
+    private AuthoritiesRepository authoritiesRepository;
 
-	// M�todo para obtener todos los usuarios
-	public List<Users> getAllUsers() {
-		return userRepository.findAll();
-	}
+    // Devuelve todos los usuarios del sistema
+    public List<Users> getAllUsers() {
+        return userRepository.findAll();
+    }
 
-	// M�todo para obtener un usuario por su username
-	public Optional<Users> getUserById(int id) {
-		return userRepository.findById(id);
-	}
+    // Busca un usuario por su ID numérico
+    public Optional<Users> getUserById(int id) {
+        return userRepository.findById(id);
+    }
 
-	public Optional<Users> getUserByUsername(String username) {
-		return userRepository.findByUsername(username);
-	}
+    // Busca un usuario por su nombre de usuario
+    public Optional<Users> getUserByUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
 
-	/* Metodo para borrar un usuario */
-	public void deleteUserById(int id) {
+    // Elimina un usuario por su ID
+    public void deleteUserById(int id) {
+        if (!userRepository.existsById(id)) {
+            throw new RuntimeException("Usuario no encontrado con id: " + id);
+        }
+        userRepository.deleteById(id);
+    }
 
-		if (!userRepository.existsById(id)) {
-			throw new RuntimeException("User no encontrado con id: " + id);
-		}
-		userRepository.deleteById(id);
-	}
+    // Crea un nuevo usuario con contraseña encriptada y lo registra en authorities
+    public Users crearUsuario(String username, String rawPassword, String permiso) {
+        Users nuevoUsuario = new Users(username, passwordEncoder.encode(rawPassword), true, permiso);
+        userRepository.save(nuevoUsuario);
+        // Guardamos el rol en la tabla authorities para que Spring Security lo reconozca
+        authoritiesRepository.save(new Authorities(username, "ROLE_" + permiso));
+        return nuevoUsuario;
+    }
 
-	public Users crearUsuario(String username, String rawPassword, String permiso) {
+    // Actualiza permiso y contraseña de un usuario, sincronizando también su authority
+    public Users actualizarUsuario(Users usuario) {
+        // 1. Cargamos el usuario actual desde la base de datos
+        Users usuarioExistente = userRepository.findById(usuario.getId())
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + usuario.getId()));
 
-		// (String username, String password, boolean enabled, String permiso
+        // 2. Buscamos su authority (puede no existir si hubo un error de sincronización previo)
+        Authorities authorityExistente = authoritiesRepository.findByUsername(usuarioExistente.getUsername())
+                .orElse(null);
 
-		// Le meto mano al user y lo salvo !
-		Users nuevoUsuario = new Users(username, passwordEncoder.encode(rawPassword), true, permiso);
+        // 3. Aplicamos los cambios al usuario
+        usuarioExistente.setPermiso(usuario.getPermiso());
 
-		userRepository.save(nuevoUsuario);
+        // Solo encriptamos la contraseña si viene rellena (puede que solo cambie el permiso)
+        if (usuario.getPassword() != null && !usuario.getPassword().isEmpty()) {
+            usuarioExistente.setPassword(passwordEncoder.encode(usuario.getPassword()));
+        }
 
-		// Le hand al authority y lo salvo !
-		authorities_Repo.save(new Authorities(username, "ROLE_" + permiso));
+        userRepository.save(usuarioExistente);
 
-		return nuevoUsuario;
+        // 4. Sincronizamos la authority — si no existe, la creamos (auto-reparación)
+        if (authorityExistente != null) {
+            authorityExistente.setRole("ROLE_" + usuario.getPermiso());
+            authoritiesRepository.save(authorityExistente);
+        } else {
+            authoritiesRepository.save(new Authorities(usuarioExistente.getUsername(), "ROLE_" + usuario.getPermiso()));
+        }
 
-	}
-
-	public Users Update_Usuario(Users user) {
-		
-
-		// 1. Buscamos el usuario de forma segura. Si no est�, lanzamos error controlado.
-	    Users usuario_update = userRepository.findById(user.getId())
-	            .orElseThrow(() -> new RuntimeException("Error: No se encuentra el usuario con ID " + user.getId()));
-
-	    // 2. Buscamos la authority por username (el ID de authorities es independiente del de users).
-	    Authorities authority_update = authorities_Repo.findByUsername(usuario_update.getUsername())
-	            .orElse(null);
-
-	    // 3. Actualizamos datos del usuario
-	    usuario_update.setPermiso(user.getPermiso());
-	    
-	    // Solo encriptamos si la password ha cambiado y no viene vac�a
-	    if (user.getPassword() != null && !user.getPassword().isEmpty()) {
-	        usuario_update.setPassword(passwordEncoder.encode(user.getPassword()));
-	    }
-	    
-	    userRepository.save(usuario_update);
-
-	    // 4. L�gica de "Auto-Reparaci�n" para Authority
-	    if (authority_update != null) {
-	        // Si existe, la actualizamos
-	        authority_update.setRole("ROLE_" + user.getPermiso());
-	        authorities_Repo.save(authority_update);
-	    } else {
-	        // [MAGIA] Si NO exist�a (por el error de sincronizaci�n), �la creamos ahora!
-	        // Asumimos que tu entidad Authorities tiene un constructor (username, role)
-	        Authorities nuevaAuthority = new Authorities(usuario_update.getUsername(), "ROLE_" + user.getPermiso());
-	        authorities_Repo.save(nuevaAuthority);
-	        //System.out.println("Aviso: Se ha reparado una authority perdida para el usuario " + usuario_update.getUsername());
-	    }
-
-	    return usuario_update;
-
-	}
-
+        return usuarioExistente;
+    }
 }

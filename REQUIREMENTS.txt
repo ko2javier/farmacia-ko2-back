@@ -1,0 +1,45 @@
+# ==========================================
+# REQUISITOS PARA EJECUTAR EL BACK SPRING BOOT
+# ==========================================
+
+# -------------------------------------
+# 1. INSTALAR JAVA 21
+# -------------------------------------
+# Descargar desde: https://adoptium.net (Temurin 21 LTS)
+# Verificar instalacion:
+#   java -version
+
+# -------------------------------------
+# 2. INSTALAR MAVEN (si no usas el wrapper)
+# -------------------------------------
+# Descargar desde: https://maven.apache.org
+# Version recomendada: 3.9.x o superior
+# Verificar instalacion:
+#   mvn -v
+#
+# Este proyecto incluye el Maven Wrapper (mvnw),
+# asi que tambien puedes usar directamente:
+#   ./mvnw (Linux/Mac) o mvnw.cmd (Windows)
+
+# -------------------------------------
+# 3. BASE DE DATOS
+# -------------------------------------
+# El proyecto conecta contra MySQL.
+# El esquema NO se genera automaticamente (ddl-auto=none),
+# asi que la base de datos tiene que estar creada y con las tablas ya cargadas.
+#
+# Para local necesitas tener MySQL corriendo en el puerto 3306
+# y haber importado el script SQL del proyecto.
+
+
+# -------------------------------------
+# 4. ARRANCAR EL PROYECTO
+# -------------------------------------
+# Desde la carpeta raiz del proyecto (donde esta el pom.xml):
+#
+#   mvn spring-boot:run
+#
+# O desde el IDE (IntelliJ / Eclipse): boton Run sobre FpApplication.java
+#
+# La API arranca en: http://localhost:5000
+# Swagger disponible en: http://localhost:5000/swagger-ui/index.html

@@ -29,8 +29,9 @@ public class ArticuloController {
     @Autowired
     private HttpServletRequest request;
 
+    // GET /articulos/search/{keyword} — busca artículos por nombre
     @GetMapping("/search/{keyword}")
-    public ResponseEntity<List<Articulos>> searchArticulos(@PathVariable String keyword) {
+    public ResponseEntity<List<Articulos>> buscarArticulos(@PathVariable String keyword) {
         List<Articulos> articulos = articuloService.searchByKeyword(keyword);
         if (articulos.isEmpty()) {
             return ResponseEntity.noContent().build();
@@ -38,8 +39,9 @@ public class ArticuloController {
         return ResponseEntity.ok(articulos);
     }
 
+    // GET /articulos/All — devuelve todo el inventario
     @GetMapping("/All")
-    public ResponseEntity<List<Articulos>> searchAll() {
+    public ResponseEntity<List<Articulos>> obtenerTodos() {
         List<Articulos> articulos = articuloService.getAll();
         if (articulos.isEmpty()) {
             return ResponseEntity.noContent().build();
@@ -47,34 +49,38 @@ public class ArticuloController {
         return ResponseEntity.ok(articulos);
     }
 
+    // PUT /articulos/updateStock — descuenta stock de varios artículos (venta en lote)
     @PutMapping("/updateStock")
-    public ResponseEntity<List<Articulos>> updateArticuloStock(@RequestBody List<UpdateDTO> updateDTOs) {
-        List<Articulos> updatedArticulos = articuloService.updateStockBatch(updateDTOs);
-        if (updatedArticulos == null || updatedArticulos.isEmpty()) {
+    public ResponseEntity<List<Articulos>> actualizarStockLote(@RequestBody List<UpdateDTO> updates) {
+        List<Articulos> articulosActualizados = articuloService.updateStockBatch(updates);
+        if (articulosActualizados == null || articulosActualizados.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(updatedArticulos);
+        return ResponseEntity.ok(articulosActualizados);
     }
 
+    // PUT /articulos/updateItem — edita precio/cantidad de un artículo desde el almacén
     @PutMapping("/updateItem")
-    public ResponseEntity<Articulos> updateArticulo(@RequestBody UpdateDTO upDTO) {
-        Articulos updatedArticulo = articuloService.updateItem(upDTO);
-        if (updatedArticulo == null) {
+    public ResponseEntity<Articulos> actualizarArticulo(@RequestBody UpdateDTO cambios) {
+        Articulos articuloActualizado = articuloService.updateItem(cambios);
+        if (articuloActualizado == null) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(updatedArticulo);
+        return ResponseEntity.ok(articuloActualizado);
     }
 
+    // POST /articulos/insert — crea un nuevo artículo y lo registra en el activity log
     @PostMapping("/insert")
-    public ResponseEntity<Articulos> createArticulo(@RequestBody Insert_DTO insertDto) {
-        Articulos createdArticulo = articuloService.InsertItem(insertDto);
+    public ResponseEntity<Articulos> crearArticulo(@RequestBody Insert_DTO insertDto) {
+        Articulos nuevoArticulo = articuloService.insertarArticulo(insertDto);
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        activityLogService.log(username, "INSERT_PRODUCT", createdArticulo.getNombre(), request.getRemoteAddr());
-        return ResponseEntity.ok(createdArticulo);
+        activityLogService.log(username, "INSERT_PRODUCT", nuevoArticulo.getNombre(), request.getRemoteAddr());
+        return ResponseEntity.ok(nuevoArticulo);
     }
 
+    // DELETE /articulos/{id} — elimina un artículo y registra la acción
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteArticulo(@PathVariable int id) {
+    public ResponseEntity<Void> eliminarArticulo(@PathVariable int id) {
         String nombre = articuloService.getById(id)
                 .map(Articulos::getNombre)
                 .orElse("id=" + id);
@@ -84,10 +90,11 @@ public class ArticuloController {
         return ResponseEntity.noContent().build();
     }
 
+    // PATCH /articulos/{id}/aemps — vincula un artículo con su ficha oficial AEMPS
     @PatchMapping("/{id}/aemps")
-    public ResponseEntity<Articulos> linkAemps(@PathVariable int id,
-                                                @RequestBody Map<String, String> body) {
-        Articulos updated = articuloService.linkAemps(id, body.get("aempsCode"), body.get("laboratorio"));
-        return ResponseEntity.ok(updated);
+    public ResponseEntity<Articulos> vincularAemps(@PathVariable int id,
+                                                    @RequestBody Map<String, String> body) {
+        Articulos articuloActualizado = articuloService.linkAemps(id, body.get("aempsCode"), body.get("laboratorio"));
+        return ResponseEntity.ok(articuloActualizado);
     }
 }

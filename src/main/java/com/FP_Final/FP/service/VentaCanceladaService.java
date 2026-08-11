@@ -11,16 +11,15 @@ import java.util.List;
 public class VentaCanceladaService {
 
     @Autowired
-    private VentaCanceladaRepository repository;
+    private VentaCanceladaRepository ventaCanceladaRepository;
 
-    // Método para guardar una cancelación
-    public VentaCancelada registrarCancelacion(VentaCancelada venta) {
-        return repository.save(venta);
+    // Guarda una cancelación en el historial (llamado desde VentaService al cancelar una venta)
+    public VentaCancelada registrarCancelacion(VentaCancelada ventaCancelada) {
+        return ventaCanceladaRepository.save(ventaCancelada);
     }
 
-    // Método para obtener el historial completo
+    // Devuelve todas las cancelaciones registradas (para el historial en el frontend)
     public List<VentaCancelada> obtenerTodas() {
-        // Aquí podríamos ordenar por fecha descendente para ver las últimas primero
-        return repository.findAll();
+        return ventaCanceladaRepository.findAll();
     }
 }
