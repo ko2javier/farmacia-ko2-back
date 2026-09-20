@@ -210,6 +210,10 @@ Swagger UI: `http://localhost:5000/swagger-ui/index.html`
 | `IA_SERVICE_URL` | Base URL of the FastAPI AI microservice |
 | `IA_SERVICE_API_KEY` | Shared key with the AI microservice |
 
+None of them have a default except `PORT`: `application.properties` resolves each one as `${...}`, so a missing variable fails the context at startup rather than at first use.
+
+**How they are supplied.** Locally, `spring-dotenv` reads the `.env` file in the project root when the application boots — copy `.env.example`, fill it in, and both `./mvnw spring-boot:run` and the IDE work with no further setup. In production there is no `.env` in the image: Docker Compose injects the variables into the container from GitHub Actions secrets.
+
 ---
 
 ## Production deployment

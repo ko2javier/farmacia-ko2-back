@@ -38,4 +38,5 @@ app.jar
 ### Secretos / Variables de entorno ###
 .env
 .env.*
+!.env.example
 MEMORY.md
