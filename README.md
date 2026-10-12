@@ -1,8 +1,17 @@
 # KO2Pharma — Backend API
 
-REST API for the **KO2Pharma** pharmacy management system, built as the final project of the Higher Diploma in **Web Application Development (DAW)** at IES San Viator.
+REST API for **KO2Pharma**, a pharmacy management system: inventory, sales, user roles and
+an audit trail, with medicine data pulled from AEMPS, Spain's official registry. It runs in
+production on a self-managed VPS, and it is the system a real pharmacy counter would use —
+built and operated end to end, from the database to the TLS certificate.
 
-**Live demo:** [https://pharma.ko2-oreilly.com](https://pharma.ko2-oreilly.com)
+**Live demo:** [https://pharma.ko2-oreilly.com](https://pharma.ko2-oreilly.com) ·
+**This API:** `https://pharma-api.ko2-oreilly.com`
+
+> **Note (October 2026).** The live demo above is now served by
+> [pharma_back_py](https://github.com/ko2javier/pharma_back_py), a port of this backend to
+> async FastAPI. This service is still deployed and still serves its own subdomain: it is
+> the rollback path, one `git revert` away. See *Python port* below.
 
 ---
 
@@ -49,19 +58,25 @@ REST API for the **KO2Pharma** pharmacy management system, built as the final pr
 ```
 Angular SPA  ·  pharma.ko2-oreilly.com
         │
-        │ HTTPS + JWT
+        │ HTTPS + JWT   (since Oct 2026 the SPA calls the Python port;
+        │                this service answers on its own subdomain)
         ▼
-┌─ Hetzner VPS · Docker network `farmacia-ko2-network` ──────────┐
-│                                                                 │
-│  fp_api  ·  Spring Boot :5000  ·  pharma-api.ko2-oreilly.com   │
-│     │                                                           │
-│     └──► fp_gpt  ·  FastAPI :8000  (GPT-4o-mini matching)      │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
+┌─ Hetzner VPS · Docker network `farmacia-ko2-network` ──────────────┐
+│                                                                     │
+│  fp_api     ·  Spring Boot :5000  ·  pharma-api.ko2-oreilly.com    │
+│  fp_api_py  ·  FastAPI     :8001  ·  pharma-api-py.ko2-oreilly.com │
+│     │                                                               │
+│     └──► fp_gpt  ·  FastAPI :8000  (GPT-4o-mini matching)          │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
         │                        │
         ▼                        ▼
   MySQL (Aiven Cloud)      AEMPS / CIMA API
 ```
+
+Both backends share the same database, the same JWT secret and the same AI container, so a
+token issued by either is valid on the other and traffic can move between them without a
+migration or a logout.
 
 Spring Boot acts as the central gateway: it receives requests from the Angular SPA, queries the database, proxies calls to AEMPS, and orchestrates calls to the AI microservice.
 
@@ -239,6 +254,28 @@ Nothing is deployed by hand and no secret lives in the repository: the `.env` on
 | Schema | `SPRING_JPA_HIBERNATE_DDL_AUTO=none` — Hibernate never alters the database |
 
 The AI microservice is deployed the same way from its own repository into `~/apps/gpt-micro`, and joins the same Docker network. Neither container publishes the AI port: `fp_api` reaches it over the internal network as `http://fp_gpt:8000`.
+
+---
+
+## Python port
+
+This backend was ported to **async FastAPI** as
+[pharma_back_py](https://github.com/ko2javier/pharma_back_py): same database, same 25
+endpoints, same JSON contract, so the Angular frontend switched over by changing one URL.
+
+The port is the one serving the live demo since 2026-10-12. This service stays running as
+the rollback path — the two share the database, the JWT secret and the AI microservice, so
+reverting the frontend commit is enough to come back, with no data migration and without
+logging anyone out.
+
+Differences worth knowing, if you are comparing the two:
+
+| | This repo (Java) | The port (Python) |
+|---|---|---|
+| Tests in CI | none | 195, and they block the image build |
+| Deployment | SSH + `docker compose up --build` on the server | image built in CI, published to `ghcr.io`, pulled by the server |
+| TLS to the database | `verifyServerCertificate=false` | CA certificate shipped and verified |
+| Password hashes | written by Spring Security | read by Python's `bcrypt`, unchanged |
 
 ---
 
