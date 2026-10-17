@@ -6,12 +6,15 @@ production on a self-managed VPS, and it is the system a real pharmacy counter w
 built and operated end to end, from the database to the TLS certificate.
 
 **Live demo:** [https://pharma.ko2-oreilly.com](https://pharma.ko2-oreilly.com) ·
-**This API:** `https://pharma-api.ko2-oreilly.com`
+**API serving it today:** `https://pharma-api-py.ko2-oreilly.com`
 
-> **Note (October 2026).** The live demo above is now served by
+> **Note (17 October 2026) — this service is retired.** The live demo is now served by
 > [pharma_back_py](https://github.com/ko2javier/pharma_back_py), a port of this backend to
-> async FastAPI. This service is still deployed and still serves its own subdomain: it is
-> the rollback path, one `git revert` away. See *Python port* below.
+> async FastAPI, which has been running it since 12 October. This Spring Boot service was
+> stopped on the VPS on 17 October and its deploy workflow disabled, so
+> `pharma-api.ko2-oreilly.com` no longer answers. The code and its history stay here as the
+> record of the original system; the container can be restarted in seconds if it is ever
+> needed. See *Python port* below.
 
 ---
 
@@ -58,12 +61,12 @@ built and operated end to end, from the database to the TLS certificate.
 ```
 Angular SPA  ·  pharma.ko2-oreilly.com
         │
-        │ HTTPS + JWT   (since Oct 2026 the SPA calls the Python port;
-        │                this service answers on its own subdomain)
+        │ HTTPS + JWT   (since Oct 2026 the SPA calls the Python port)
+        │
         ▼
 ┌─ Hetzner VPS · Docker network `farmacia-ko2-network` ──────────────┐
 │                                                                     │
-│  fp_api     ·  Spring Boot :5000  ·  pharma-api.ko2-oreilly.com    │
+│  fp_api     ·  Spring Boot :5000  ·  STOPPED since 17 Oct 2026     │
 │  fp_api_py  ·  FastAPI     :8001  ·  pharma-api-py.ko2-oreilly.com │
 │     │                                                               │
 │     └──► fp_gpt  ·  FastAPI :8000  (GPT-4o-mini matching)          │
@@ -233,7 +236,11 @@ None of them have a default except `PORT`: `application.properties` resolves eac
 
 ## Production deployment
 
-Running on a **self-managed Hetzner VPS** under Docker Compose, at **`https://pharma-api.ko2-oreilly.com`**. The migration off Railway (via an AWS EC2 intermediate step) completed in August 2026.
+> **Retired on 17 October 2026.** The pipeline below is how this service was deployed while
+> it was live. The container is stopped and the workflow is disabled, so a push to `master`
+> no longer deploys anything. It is kept here as the record of how it worked.
+
+It ran on a **self-managed Hetzner VPS** under Docker Compose, at `https://pharma-api.ko2-oreilly.com`. The migration off Railway (via an AWS EC2 intermediate step) completed in August 2026.
 
 **Pipeline** — `.github/workflows/deploy.yml`, on every push to `master`:
 
@@ -263,10 +270,12 @@ This backend was ported to **async FastAPI** as
 [pharma_back_py](https://github.com/ko2javier/pharma_back_py): same database, same 25
 endpoints, same JSON contract, so the Angular frontend switched over by changing one URL.
 
-The port is the one serving the live demo since 2026-10-12. This service stays running as
-the rollback path — the two share the database, the JWT secret and the AI microservice, so
-reverting the frontend commit is enough to come back, with no data migration and without
-logging anyone out.
+The port has served the live demo since 2026-10-12, and on 2026-10-17 this service was
+stopped: the port had run five days in production without a single 5xx or a restart, so the
+safety net was no longer earning its keep. Coming back is still cheap if it is ever needed —
+the two share the database, the JWT secret and the AI microservice, so starting the container
+again and reverting the frontend commit is enough, with no data migration and without logging
+anyone out.
 
 Differences worth knowing, if you are comparing the two:
 
